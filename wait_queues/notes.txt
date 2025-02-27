@@ -1,0 +1,61 @@
+Waitqueue in Linux
+
+When you write a Linux Driver Module or Kernel Program, Some processes should wait or sleep for some event. There are several ways of handling sleeping and waking up in Linux, each suited to different needs. Waitqueue is also one of the methods to handle that case.
+
+Whenever a process must wait for an event (such as the arrival of data or the termination of a process), it should go to sleep. Sleeping causes the process to suspend execution, freeing the processor for other uses.
+
+After some time, the process will be woken up and will continue with its job when the event which we are waiting for has arrived.
+
+Linux Waitqueue is a mechanism provided in the kernel to implement the wait. As the name itself suggests, waitqueue is the list of processes waiting for an event.
+
+In other words, A wait queue is used to wait for someone to wake you up when a certain condition is true. They must be used carefully to ensure there is no race condition
+
+
+There are 3 important steps in Waitqueue.
+
+1.Initializing Waitqueue:
+  1.Static: 
+      DECLARE_WAIT_QUEUE_HEAD(wq);//wq is name of the Queue
+
+  2.Dynamic:
+      wait_queue_head_t wq;
+      init_waitqueue_head (&wq);
+
+2.Queuing:
+  1. wait_event: Wait Until the Condition met.
+	wait_event(wq, condition);
+
+  2. wait_event_timeout: Wait until the condition met or timeout elapses.
+	wait_event_timeout(wq, condition, timeout);
+
+  3. wait_event_cmd: sleep until the Condition met.
+	wait_event_cmd(wq, condition, cmd1, cmd2);
+	
+	cmd1, cmd2: These are commands that are executed while the thread is waiting for the condition. The commands are executed before the thread starts waiting and are not executed again after the wait finishes. These are typically used for manipulating or updating flags, variables, or performing any other pre-wait operations.
+
+  4. wait_event_interruptible: sleep until the Condition met and also interupted upto any signals.
+	wait_event_interruptible_timeout(wq, condition); 
+
+  5. wait_event_interruptible_timeout: sleep until the Condition met and also interupted upto any signals or from the time out. 
+	wait_event_interruptible_timeout(wq, condition, timeout);
+  
+  6. wait_event_killable: sleep until condition met but also with the added capability that the thread can be killed or terminated while it's waiting.
+	wait_event_killable(wq, condition);
+     Typical Use: This is used in situations where a thread might be doing blocking or long-running tasks, and you want it to be killable by the user or other processes in a safe manner. 
+  
+3.Waking Up Queued Task:
+  1. wake_up:wakes up only one process from the wait queue which is in non-interruptible sleep.
+	wake_up(&wq);
+
+  2. wake_up_all:wakes up all the processes on the wait queue.
+	wake_up_all(&wq);
+
+  3. wake_up_interruptible:wakes up only one process from the wait queue that is in interruptible sleep.
+	wake_up_interruptible(&wq);
+
+  4. wake_up_sync :This function ensures that any waking threads on the wait queue are properly synchronized and that the necessary work or state changes are completed before the thread is woken up.
+	wake_up_sync(&wq) 
+
+  5. wake_up_interruptible_sync:
+	wake_up_interruptible_sync(&wq);
+
